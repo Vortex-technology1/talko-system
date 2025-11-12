@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TALKO System - Таск Менеджер Pro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #2c3e50; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem 2rem; box-shadow: 0 2px 20px rgba(0,0,0,0.1); }
+        .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; }
+        .lang-switch { display: flex; gap: 0.5rem; }
+        .lang-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; transition: all 0.3s; }
+        .lang-btn.active { background: rgba(255,255,255,0.3); font-weight: 600; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .controls { background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .btn { background: #3498db; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 5px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; font-weight: 500; }
+        .btn:hover { background: #2980b9; transform: translateY(-1px); }
+        .btn-success { background: #27ae60; } .btn-success:hover { background: #229954; }
+        .btn-danger { background: #e74c3c; } .btn-danger:hover { background: #c0392b; }
+        .btn-clear { background: #95a5a6; color: white; } .btn-clear:hover { background: #7f8c8d; }
+        .btn-small { padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 3px; }
+        .filters { display: flex; gap: 0.5rem; margin-left: auto; flex-wrap: wrap; }
+        .filter-select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 5px; background: white; font-size: 0.8rem; }
+        .tab-navigation { display: flex; background: white; border-radius: 10px 10px 0 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 0; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+        .tab-navigation::-webkit-scrollbar { display: none; }
+        .tab-btn { background: transparent; border: none; padding: 1rem 1.2rem; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #7f8c8d; transition: all 0.3s; border-bottom: 3px solid transparent; white-space: nowrap; min-width: fit-content; }
+        .tab-btn:hover { color: #2c3e50; background: rgba(52, 73, 94, 0.05); }
+        .tab-btn.active { color: #3498db; border-bottom-color: #3498db; font-weight: 600; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tasks-grid, .functions-grid, .control-dashboard, .analytics-container { background: white; border-radius: 0 0 10px 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .task-header { background: #34495e; color: white; padding: 1rem; display: grid; grid-template-columns: 3fr 1.2fr 1.2fr 1fr 0.8fr 0.8fr 1fr; gap: 0.5rem; font-weight: 600; font-size: 0.85rem; }
+        .task-row { padding: 0.75rem; display: grid; grid-template-columns: 3fr 1.2fr 1.2fr 1fr 0.8fr 0.8fr 1fr; gap: 0.5rem; border-bottom: 1px solid #ecf0f1; align-items: center; transition: all 0.3s; font-size: 0.85rem; }
+        .task-row:hover { background: #f8f9fa; }
+        .task-row.pinned { background: linear-gradient(90deg, rgba(52, 152, 219, 0.1) 0%, rgba(255, 255, 255, 1) 100%); border-left: 4px solid #3498db; }
+        .task-title { font-weight: 600; color: #2c3e50; font-size: 0.9rem; }
+        .task-info { font-size: 0.75rem; color: #7f8c8d; margin-top: 0.25rem; }
+        .task-title-container { display: flex; align-items: center; gap: 0.5rem; }
+        .pin-btn { background: none; border: none; cursor: pointer; font-size: 1rem; color: #bdc3c7; transition: all 0.3s; padding: 0.2rem; }
+        .pin-btn:hover { color: #f39c12; transform: scale(1.1); }
+        .pin-btn.pinned { color: #f39c12; }
+        .status-badge, .type-badge { padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.7rem; font-weight: 500; text-align: center; }
+        .status-new { background: #e3f2fd; color: #1976d2; }
+        .status-progress { background: #fff3e0; color: #f57c00; }
+        .status-review { background: #fce4ec; color: #c2185b; }
+        .status-done { background: #e8f5e8; color: #388e3c; }
+        .type-single { background: #e3f2fd; color: #1976d2; }
+        .type-regular { background: #f3e5f5; color: #7b1fa2; }
+        .type-bottleneck { background: #ffebee; color: #d32f2f; }
+        .empty-state { text-align: center; padding: 3rem 2rem; color: #7f8c8d; }
+        .empty-state h3 { margin-bottom: 1rem; color: #34495e; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+        .modal-content { background: white; margin: 2% auto; padding: 0; border-radius: 10px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-header { background: #34495e; color: white; padding: 1.5rem; border-radius: 10px 10px 0 0; }
+        .modal-body { padding: 1.5rem; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full-width { grid-column: span 2; }
+        .form-label { margin-bottom: 0.5rem; font-weight: 600; color: #34495e; font-size: 0.9rem; }
+        .form-input, .form-select, .form-textarea { padding: 0.6rem; border: 2px solid #ecf0f1; border-radius: 5px; font-size: 0.9rem; transition: border-color 0.3s; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: #3498db; }
+        .form-textarea { resize: vertical; min-height: 80px; }
+        .close { color: #aaa; float: right; font-size: 24px; font-weight: bold; cursor: pointer; margin-top: -5px; }
+        .close:hover { color: white; }
+        .functions-grid { padding: 1.5rem; }
+        .function-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+        .function-card { background: #f8f9fa; border: 2px solid #ecf0f1; border-radius: 10px; padding: 1.2rem; transition: all 0.3s; }
+        .function-card:hover { border-color: #3498db; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .function-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .function-description { color: #7f8c8d; margin-bottom: 1rem; line-height: 1.4; font-size: 0.85rem; }
+        .function-assignees { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 1rem; }
+        .assignee-badge { background: #27ae60; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.7rem; }
+        .function-tasks-count { color: #3498db; font-weight: 600; font-size: 0.85rem; }
+        .control-dashboard, .analytics-container { padding: 1.5rem; }
+        .control-overview, .analytics-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .control-card, .analytics-card { border-radius: 12px; padding: 1.5rem; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+        .control-card.urgent { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%); color: white; }
+        .control-card.warning { background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%); color: white; }
+        .control-card.active { background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; }
+        .control-card.completed { background: linear-gradient(135deg, #55efc4 0%, #00b894 100%); color: white; }
+        .analytics-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .control-number, .analytics-number { font-size: 2rem; font-weight: 700; margin: 0.5rem 0; }
+        .control-filters { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; align-items: center; background: #f8f9fa; padding: 1rem; border-radius: 8px; }
+        .chart-container { background: #f8f9fa; border-radius: 8px; padding: 1rem; min-height: 200px; margin-bottom: 1rem; }
+        .chart-container h3 { color: #2c3e50; font-size: 1rem; margin-bottom: 0.8rem; }
+        .regular-tasks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; padding: 1rem; }
+        .regular-task-card { background: white; border: 2px solid #ecf0f1; border-radius: 12px; padding: 1.2rem; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .regular-task-card:hover { border-color: #3498db; transform: translateY(-1px); }
+        .regular-task-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem; }
+        .regular-task-title { font-size: 1rem; font-weight: 600; color: #2c3e50; flex: 1; }
+        .regular-task-info { background: #f8f9fa; border-radius: 8px; padding: 0.8rem; margin-bottom: 0.8rem; font-size: 0.8rem; line-height: 1.4; }
+        .regular-task-info div { margin-bottom: 0.3rem; }
+        .regular-task-info strong { color: #34495e; font-weight: 600; }
+        .regular-task-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+        #dateRangeInputs { display: none; align-items: center; gap: 0.3rem; }
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .task-header, .task-row { grid-template-columns: 1fr; gap: 0.3rem; }
+            .task-header > div, .task-row > div { padding: 0.3rem 0; border-bottom: 1px solid #ecf0f1; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .filters { margin-left: 0; justify-content: flex-start; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .tab-btn { padding: 0.8rem 1rem; }
+        }
+
+        /* 🔐 АВТОРИЗАЦІЯ */
+        .auth-container { display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 200px); padding: 2rem; }
+        .auth-card { background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); padding: 0; max-width: 400px; width: 100%; overflow: hidden; }
+        .auth-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; text-align: center; }
+        .auth-header h2 { margin-bottom: 0.5rem; font-size: 1.8rem; }
+        .auth-header p { opacity: 0.9; font-size: 0.9rem; }
+        .auth-body { padding: 2rem; }
+        .auth-form h3 { margin-bottom: 1.5rem; color: #2c3e50; text-align: center; }
+        .main-interface { display: none; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">TALKO System - Таск Менеджер Pro</div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div id="currentUserInfo" style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; cursor: pointer;" onclick="switchUserForTesting()">
+                    👤 <span id="currentUserName">Олександр Талько</span> 
+                    <span id="currentUserRole" style="font-size: 0.8rem; opacity: 0.8;">(Власник)</span>
+                    <span style="font-size: 0.7rem; opacity: 0.7;">↻</span>
+                </div>
+                <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem;">
+                    🚪 Вийти
+                </button>
+                <div class="lang-switch">
+                    <button class="lang-btn active" onclick="setLanguage('ua')">UA</button>
+                    <button class="lang-btn" onclick="setLanguage('ru')">RU</button>
+                    <button class="lang-btn" onclick="setLanguage('bg')">BG</button>
+                    <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 🔐 СТОРІНКА АВТОРИЗАЦІЇ -->
+        <div id="authPage" class="auth-container" style="display: none;">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>🚀 TALKO System</h2>
+                    <p>Система управління завданнями</p>
+                </div>
+                <div class="auth-body">
+                    <div id="loginForm" class="auth-form">
+                        <h3>Вхід до системи</h3>
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required>
+                        </div>
+                        <button onclick="sendLoginCode()" class="btn btn-success" style="width: 100%; margin-top: 1rem;">
+                            📧 Відправити код
+                        </button>
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <small style="color: #7f8c8d;">Ми відправимо код підтвердження на ваш email</small>
+                        </div>
+                    </div>
+                    
+                    <div id="codeForm" class="auth-form" style="display: none;">
+                        <h3>Введіть код підтвердження</h3>
+                        <div class="form-group">
+                            <label>Код з email:</label>
+                            <input type="text" id="loginCode" class="form-input" placeholder="123456" maxlength="6" required>
+                        </div>
+                        <button onclick="verifyLoginCode()" class="btn btn-success" style="width: 100%; margin-top: 1rem;">
+                            ✅ Увійти
+                        </button>
+                        <button onclick="backToLogin()" class="btn" style="width: 100%; margin-top: 0.5rem;">
+                            ← Назад
+                        </button>
+                    </div>
+                    
+                    <div id="inviteForm" class="auth-form" style="display: none;">
+                        <h3>Реєстрація за запрошенням</h3>
+                        <div class="form-group">
+                            <label>Ім'я та прізвище:</label>
+                            <input type="text" id="inviteName" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Телефон:</label>
+                            <input type="tel" id="invitePhone" class="form-input">
+                        </div>
+                        <button onclick="completeRegistration()" class="btn btn-success" style="width: 100%; margin-top: 1rem;">
+                            🎉 Завершити реєстрацію
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📱 ОСНОВНИЙ ІНТЕРФЕЙС -->
+        <div id="mainInterface" class="main-interface">
+            <div class="tab-navigation">
+            <button class="tab-btn active" onclick="switchTab('tasks')">Завдання</button>
+            <button class="tab-btn" onclick="switchTab('control')">Контроль</button>
+            <button class="tab-btn" onclick="switchTab('regular')">Регулярні</button>
+            <button class="tab-btn" onclick="switchTab('functions')">Функції</button>
+            <button class="tab-btn" onclick="switchTab('users')">Співробітники</button>
+            <button class="tab-btn" onclick="switchTab('analytics')">Аналітика</button>
+        </div>
+
+        <!-- Вкладка Завдання -->
+        <div id="tasksTab" class="tab-content active">
+            <div class="controls">
+                <button class="btn btn-success" onclick="openTaskModal()">+ Додати завдання</button>
+                <button class="btn" onclick="exportToCSV()">📊 Експорт CSV</button>
+                <div class="filters">
+                    <button class="btn btn-clear" onclick="clearFilters()">🗑️ Очистити</button>
+                    <select class="filter-select" id="pinnedFilter" onchange="applyFilters()">
+                        <option value="">Всі завдання</option>
+                        <option value="pinned">Закріплені</option>
+                        <option value="unpinned">Не закріплені</option>
+                    </select>
+                    <select class="filter-select" id="dateFilter" onchange="applyFilters()">
+                        <option value="">Всі дати</option>
+                        <option value="today">Сьогодні</option>
+                        <option value="week">Тиждень</option>
+                        <option value="month">Місяць</option>
+                        <option value="overdue">Прострочені</option>
+                        <option value="custom">Період</option>
+                    </select>
+                    <div id="dateRangeInputs">
+                        <input type="date" id="dateFrom" class="filter-select" onchange="applyFilters()">
+                        <span>—</span>
+                        <input type="date" id="dateTo" class="filter-select" onchange="applyFilters()">
+                    </div>
+                    <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+                        <option value="">Статуси</option>
+                        <option value="new">Нові</option>
+                        <option value="progress">В роботі</option>
+                        <option value="review">Перевірка</option>
+                        <option value="done">Готово</option>
+                    </select>
+                    <select class="filter-select" id="functionFilter" onchange="applyFilters()">
+                        <option value="">Функції</option>
+                    </select>
+                    <select class="filter-select" id="assigneeFilter" onchange="applyFilters()">
+                        <option value="">Виконавці</option>
+                    </select>
+                </div>
+            </div>
+            <div class="tasks-grid" id="tasksContainer"></div>
+        </div>
+
+        <!-- Вкладка Контроль -->
+        <div id="controlTab" class="tab-content">
+            <div class="control-dashboard">
+                <h2 style="margin-bottom: 1.5rem; color: #2c3e50;">Панель контролю завдань</h2>
+                <div class="control-overview">
+                    <div class="control-card urgent">
+                        <h3>🚨 Критичні</h3>
+                        <div class="control-number" id="urgentCount">0</div>
+                        <p>Прострочені</p>
+                    </div>
+                    <div class="control-card warning">
+                        <h3>⚠️ Увага</h3>
+                        <div class="control-number" id="warningCount">0</div>
+                        <p>Сьогодні-завтра</p>
+                    </div>
+                    <div class="control-card active">
+                        <h3>🔄 Активні</h3>
+                        <div class="control-number" id="activeCount">0</div>
+                        <p>В роботі</p>
+                    </div>
+                    <div class="control-card completed">
+                        <h3>✅ Готово</h3>
+                        <div class="control-number" id="completedCount">0</div>
+                        <p>Завершені</p>
+                    </div>
+                </div>
+                <div class="control-filters">
+                    <label style="font-weight: 600; color: #2c3e50;">Перегляд:</label>
+                    <select id="controlView" onchange="updateControlView()" class="filter-select">
+                        <option value="workload">Навантаження</option>
+                        <option value="deadlines">Дедлайни</option>
+                        <option value="functions">Функції</option>
+                    </select>
+                </div>
+                <div id="controlContent"></div>
+            </div>
+        </div>
+
+        <!-- Вкладка Регулярні -->
+        <div id="regularTab" class="tab-content">
+            <div class="controls">
+                <button class="btn btn-success" onclick="openRegularTaskModal()">+ Регулярне завдання</button>
+            </div>
+            <div id="regularTasksContainer"></div>
+        </div>
+
+        <!-- Вкладка Функції -->
+        <div id="functionsTab" class="tab-content">
+            <div class="controls">
+                <button class="btn btn-success" onclick="openFunctionModal()">+ Додати функцію</button>
+            </div>
+            <div id="functionsContainer" class="functions-grid"></div>
+        </div>
+
+        <!-- Вкладка Співробітники -->
+        <div id="usersTab" class="tab-content">
+            <div class="controls">
+                <button class="btn btn-success" onclick="openUserModal()">+ Додати співробітника</button>
+                <button class="btn" onclick="openInviteModal()" style="background: #f39c12;">📤 Запросити співробітника</button>
+            </div>
+            <div id="usersContainer" class="functions-grid"></div>
+        </div>
+
+        <!-- Вкладка Аналітика -->
+        <div id="analyticsTab" class="tab-content">
+            <div class="analytics-container">
+                <div class="analytics-cards">
+                    <div class="analytics-card">
+                        <h3>Всього завдань</h3>
+                        <div class="analytics-number" id="totalTasksCount">0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Виконано</h3>
+                        <div class="analytics-number" id="completedTasksCount">0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Прострочено</h3>
+                        <div class="analytics-number" id="overdueTasksCount">0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Ефективність</h3>
+                        <div class="analytics-number" id="efficiencyPercent">0%</div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="chart-container">
+                        <h3>Статуси завдань</h3>
+                        <div id="statusChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Навантаження</h3>
+                        <div id="workloadChart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    <!-- Модальні вікна -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeTaskModal()">&times;</span>
+                <h2 id="modalTitle">Додати завдання</h2>
+            </div>
+            <div class="modal-body">
+                <form id="taskForm">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">Назва завдання:</label>
+                            <input type="text" id="taskTitle" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Функція:</label>
+                            <select id="taskFunction" class="form-select">
+                                <option value="">Без функції</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Відповідальний:</label>
+                            <select id="taskAssignee" class="form-select" required>
+                                <option value="">Оберіть виконавця</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Дедлайн:</label>
+                            <input type="datetime-local" id="taskDeadline" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Тип:</label>
+                            <select id="taskType" class="form-select">
+                                <option value="single">Разове</option>
+                                <option value="regular">Регулярне</option>
+                                <option value="bottleneck">Вузьке місце</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Статус:</label>
+                            <select id="taskStatus" class="form-select">
+                                <option value="new">Нове</option>
+                                <option value="progress">В роботі</option>
+                                <option value="review">На перевірці</option>
+                                <option value="done">Готово</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Закріпити:</label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                                <input type="checkbox" id="taskPinned">
+                                <span>Закріпити завдання</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Пріоритет:</label>
+                            <select id="taskPriority" class="form-select">
+                                <option value="low">Низький</option>
+                                <option value="medium">Середній</option>
+                                <option value="high">Високий</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Додаткова інформація:</label>
+                            <textarea id="taskInfo" class="form-textarea" placeholder="Деталі завдання, контекст, вимоги..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Як звітуватися:</label>
+                            <textarea id="taskReporting" class="form-textarea" placeholder="Куди відправити звіт, у якому форматі..."></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Результат завдання:</label>
+                            <textarea id="taskResult" class="form-textarea" placeholder="Що зроблено, результати, висновки..."></textarea>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem; text-align: right;">
+                        <button type="button" class="btn" onclick="closeTaskModal()">Скасувати</button>
+                        <button type="submit" class="btn btn-success">Зберегти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="functionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeFunctionModal()">&times;</span>
+                <h2>Додати функцію</h2>
+            </div>
+            <div class="modal-body">
+                <form id="functionForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Назва:</label>
+                            <input type="text" id="functionName" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Колір:</label>
+                            <input type="color" id="functionColor" class="form-input" value="#3498db">
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Опис:</label>
+                            <textarea id="functionDescription" class="form-textarea"></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Користувачі:</label>
+                            <div id="functionAssignees"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem; text-align: right;">
+                        <button type="button" class="btn" onclick="closeFunctionModal()">Скасувати</button>
+                        <button type="submit" class="btn btn-success">Зберегти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="regularTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeRegularTaskModal()">&times;</span>
+                <h2>Регулярне завдання</h2>
+            </div>
+            <div class="modal-body">
+                <form id="regularTaskForm">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">Назва:</label>
+                            <input type="text" id="regularTaskTitle" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Функція:</label>
+                            <select id="regularTaskFunction" class="form-select">
+                                <option value="">Без функції</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Відповідальний:</label>
+                            <select id="regularTaskAssignee" class="form-select" required>
+                                <option value="">Виконавець</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Періодичність:</label>
+                            <select id="regularTaskPeriod" class="form-select" onchange="updatePeriodOptions()">
+                                <option value="daily">Щодня</option>
+                                <option value="weekly">Щотижня</option>
+                                <option value="monthly">Щомісяця</option>
+                                <option value="workdays">Робочі дні</option>
+                                <option value="weekends">Вихідні</option>
+                                <option value="custom">Вибрані дні</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="customDaysContainer" style="display: none;">
+                            <label class="form-label">Дні тижня:</label>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.3rem;">
+                                    <input type="checkbox" name="customDays" value="1"> Понеділок
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.3rem;">
+                                    <input type="checkbox" name="customDays" value="2"> Вівторок
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.3rem;">
+                                    <input type="checkbox" name="customDays" value="3"> Середа
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.3rem;">
+                                    <input type="checkbox" name="customDays" value="4"> Четвер
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.3rem;">
+                                    <input type="checkbox" name="customDays" value="5"> П'ятниця
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.3rem;">
+                                    <input type="checkbox" name="customDays" value="6"> Субота
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.3rem;">
+                                    <input type="checkbox" name="customDays" value="0"> Неділя
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Днів на виконання:</label>
+                            <input type="number" id="regularTaskDuration" class="form-input" value="1" min="1" max="30">
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Опис:</label>
+                            <textarea id="regularTaskDescription" class="form-textarea"></textarea>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem; text-align: right;">
+                        <button type="button" class="btn" onclick="closeRegularTaskModal()">Скасувати</button>
+                        <button type="submit" class="btn btn-success">Зберегти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальне вікно користувачів -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeUserModal()">&times;</span>
+                <h2 id="userModalTitle">Додати співробітника</h2>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Ім'я та прізвище:</label>
+                            <input type="text" id="userName" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email:</label>
+                            <input type="email" id="userEmail" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Телефон:</label>
+                            <input type="tel" id="userPhone" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Роль:</label>
+                            <select id="userRole" class="form-select" required>
+                                <option value="employee">Співробітник</option>
+                                <option value="manager">Менеджер</option>
+                                <option value="owner">Власник</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Посада:</label>
+                            <input type="text" id="userPosition" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Департамент:</label>
+                            <input type="text" id="userDepartment" class="form-input">
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Додаткова інформація:</label>
+                            <textarea id="userNotes" class="form-textarea" placeholder="Досвід, навички, особливості..."></textarea>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem; text-align: right;">
+                        <button type="button" class="btn" onclick="closeUserModal()">Скасувати</button>
+                        <button type="submit" class="btn btn-success">Зберегти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="inviteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeInviteModal()">&times;</span>
+                <h2>📤 Запросити співробітника</h2>
+            </div>
+            <div class="modal-body">
+                <form id="inviteFormModal">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Email співробітника:</label>
+                            <input type="email" id="inviteEmail" class="form-input" required placeholder="colleague@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Роль:</label>
+                            <select id="inviteRole" class="form-select" required>
+                                <option value="employee">Співробітник</option>
+                                <option value="manager">Менеджер</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Функція (опціонально):</label>
+                            <select id="inviteFunction" class="form-select">
+                                <option value="">Без функції</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Посада:</label>
+                            <input type="text" id="invitePosition" class="form-input" placeholder="Розробник, Дизайнер...">
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Повідомлення (опціонально):</label>
+                            <textarea id="inviteMessage" class="form-textarea" placeholder="Вітаємо в команді TALKO System!"></textarea>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem; text-align: right;">
+                        <button type="button" class="btn" onclick="closeInviteModal()">Скасувати</button>
+                        <button type="submit" class="btn btn-success">📤 Створити запрошення</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="inviteLinkModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeInviteLinkModal()">&times;</span>
+                <h2>✅ Запрошення створено!</h2>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center;">
+                    <div style="background: #e8f5e8; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                        <p style="margin-bottom: 1rem; color: #27ae60; font-weight: 600;">📧 Скопіюйте це посилання та відправте співробітнику:</p>
+                        <div style="background: white; padding: 1rem; border-radius: 5px; border: 2px dashed #27ae60; word-break: break-all; font-family: monospace; font-size: 0.9rem;" id="inviteLinkText"></div>
+                    </div>
+                    
+                    <button onclick="copyInviteLink()" class="btn btn-success" style="margin-right: 0.5rem;">
+                        📋 Копіювати посилання
+                    </button>
+                    <button onclick="shareInviteEmail()" class="btn" style="background: #3498db;">
+                        📧 Відкрити Email
+                    </button>
+                    
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 5px; font-size: 0.85rem; color: #7f8c8d;">
+                        💡 <strong>Посилання діє 7 днів</strong><br>
+                        Співробітник зможе зареєструватися та приєднатися до системи
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [], users = [
+            {id: 1, name: "Олександр Талько", role: "owner", email: "management.talco@gmail.com", phone: "+380501234567", position: "CEO", department: "Управління", notes: "Засновник TALKO System"},
+            {id: 2, name: "Марія Петренко", role: "manager", email: "maria@talko.com", phone: "+380501234568", position: "Менеджер з маркетингу", department: "Маркетинг", notes: "5 років досвіду в digital-маркетингу"},
+            {id: 3, name: "Іван Коваленко", role: "employee", email: "ivan@talko.com", phone: "+380501234569", position: "Розробник", department: "IT", notes: "Frontend/Backend розробка"},
+            {id: 4, name: "Ольга Сидоренко", role: "employee", email: "olga@talko.com", phone: "+380501234570", position: "Дизайнер", department: "Дизайн", notes: "UI/UX дизайн, брендинг"}
+        ], functions = [], regularTasks = [], currentUser = {name: "Олександр Талько", role: "owner"}, activeTab = 'tasks', editingTaskId = null, editingUserId = null;
+
+        // 🔐 ЗМІННІ АВТОРИЗАЦІЇ
+        let isAuthenticated = false;
+        let authCodes = {}; // Зберігання кодів підтвердження
+        let inviteCodes = {}; // Зберігання запрошень
+        let currentAuthEmail = '';
+        let currentInviteCode = '';
+
+        // 🔒 СИСТЕМА ПРАВ ДОСТУПУ
+        function hasPermission(action) {
+            const role = currentUser.role;
+            const permissions = {
+                owner: ['all'],
+                manager: ['viewAll', 'createTasks', 'editTasks', 'deleteTasks', 'createRegular', 'assignFunctions', 'extendDeadlines', 'manageUsers'],
+                employee: ['viewOwn', 'createTasks', 'editOwnTasks', 'changeStatus', 'comment']
+            };
+            return permissions[role]?.includes('all') || permissions[role]?.includes(action);
+        }
+
+        function canViewTask(task) {
+            if (hasPermission('viewAll')) return true;
+            if (hasPermission('viewOwn')) {
+                return task.assignee === currentUser.name || task.creator === currentUser.name;
+            }
+            return false;
+        }
+
+        function canEditTask(task) {
+            if (hasPermission('editTasks')) return true;
+            if (hasPermission('editOwnTasks')) {
+                return task.assignee === currentUser.name || task.creator === currentUser.name;
+            }
+            return false;
+        }
+
+        function canDeleteTask(task) {
+            if (hasPermission('deleteTasks')) return true;
+            return task.creator === currentUser.name;
+        }
+
+        function showPermissionError() {
+            alert('❌ У вас немає прав для цієї дії');
+        }
+
+        function updateCurrentUserInfo() {
+            const roleText = {owner: 'Власник', manager: 'Менеджер', employee: 'Співробітник'}[currentUser.role] || 'Невідома роль';
+            document.getElementById('currentUserName').textContent = currentUser.name;
+            document.getElementById('currentUserRole').textContent = `(${roleText})`;
+        }
+
+        // 🧪 ТЕСТУВАННЯ РОЛЕЙ (тимчасово)
+        function switchUserForTesting() {
+            const testUsers = [
+                {name: "Олександр Талько", role: "owner"},
+                {name: "Марія Петренко", role: "manager"},
+                {name: "Іван Коваленко", role: "employee"}
+            ];
+            
+            const currentIndex = testUsers.findIndex(u => u.name === currentUser.name);
+            const nextIndex = (currentIndex + 1) % testUsers.length;
+            currentUser = testUsers[nextIndex];
+            
+            updateCurrentUserInfo();
+            renderTasks();
+            alert(`🔄 Переключено на: ${currentUser.name} (${currentUser.role})`);
+        }
+
+        // 🔐 ФУНКЦІЇ АВТОРИЗАЦІЇ
+        function checkAuthentication() {
+            const session = localStorage.getItem('authSession');
+            if (session) {
+                const sessionData = JSON.parse(session);
+                const user = users.find(u => u.email === sessionData.email);
+                if (user) {
+                    currentUser = user;
+                    isAuthenticated = true;
+                    showMainInterface();
+                    updateCurrentUserInfo();
+                    return;
+                }
+            }
+            showAuthPage();
+        }
+
+        function showAuthPage() {
+            document.getElementById('authPage').style.display = 'block';
+            document.getElementById('mainInterface').style.display = 'none';
+            
+            // Перевірити чи є код запрошення в URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const inviteCode = urlParams.get('invite');
+            if (inviteCode) {
+                showInviteForm(inviteCode);
+            }
+        }
+
+        function showMainInterface() {
+            document.getElementById('authPage').style.display = 'none';
+            document.getElementById('mainInterface').style.display = 'block';
+        }
+
+        function sendLoginCode() {
+            const email = document.getElementById('loginEmail').value.trim();
+            if (!email) {
+                alert('Введіть email');
+                return;
+            }
+
+            const user = users.find(u => u.email === email);
+            if (!user) {
+                alert('❌ Користувача з таким email не знайдено');
+                return;
+            }
+
+            // Генерація коду
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            authCodes[email] = {
+                code: code,
+                expiry: Date.now() + 10 * 60 * 1000 // 10 хвилин
+            };
+            
+            currentAuthEmail = email;
+
+            // Показ коду (замість відправки email)
+            alert(`📧 Код підтвердження: ${code}\n(В реальній системі відправиться на email)`);
+
+            // Переключитись на форму введення коду
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('codeForm').style.display = 'block';
+        }
+
+        function verifyLoginCode() {
+            const enteredCode = document.getElementById('loginCode').value.trim();
+            const authData = authCodes[currentAuthEmail];
+
+            if (!authData) {
+                alert('❌ Код не знайдено');
+                return;
+            }
+
+            if (Date.now() > authData.expiry) {
+                alert('❌ Код прострочений');
+                delete authCodes[currentAuthEmail];
+                backToLogin();
+                return;
+            }
+
+            if (enteredCode !== authData.code) {
+                alert('❌ Неправильний код');
+                return;
+            }
+
+            // Успішний вхід
+            const user = users.find(u => u.email === currentAuthEmail);
+            currentUser = user;
+            isAuthenticated = true;
+
+            // Зберегти сесію
+            localStorage.setItem('authSession', JSON.stringify({
+                email: currentAuthEmail,
+                loginTime: Date.now()
+            }));
+
+            // Очистити код
+            delete authCodes[currentAuthEmail];
+
+            showMainInterface();
+            updateCurrentUserInfo();
+            renderTasks();
+            alert(`🎉 Вітаємо, ${currentUser.name}!`);
+        }
+
+        function backToLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('codeForm').style.display = 'none';
+            document.getElementById('loginCode').value = '';
+        }
+
+        function logout() {
+            localStorage.removeItem('authSession');
+            isAuthenticated = false;
+            currentUser = null;
+            showAuthPage();
+        }
+
+        // 📤 СИСТЕМА ЗАПРОШЕНЬ
+        function openInviteModal() {
+            if (!hasPermission('manageUsers')) {
+                showPermissionError();
+                return;
+            }
+            
+            document.getElementById('inviteModal').style.display = 'block';
+            updateInviteFunctionSelect();
+            clearInviteForm();
+        }
+
+        function closeInviteModal() {
+            document.getElementById('inviteModal').style.display = 'none';
+        }
+
+        function closeInviteLinkModal() {
+            document.getElementById('inviteLinkModal').style.display = 'none';
+        }
+
+        function clearInviteForm() {
+            document.getElementById('inviteEmail').value = '';
+            document.getElementById('inviteRole').value = 'employee';
+            document.getElementById('inviteFunction').value = '';
+            document.getElementById('invitePosition').value = '';
+            document.getElementById('inviteMessage').value = '';
+        }
+
+        function updateInviteFunctionSelect() {
+            const select = document.getElementById('inviteFunction');
+            select.innerHTML = '<option value="">Без функції</option>' + 
+                functions.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+        }
+
+        function createInvite() {
+            const email = document.getElementById('inviteEmail').value.trim();
+            const role = document.getElementById('inviteRole').value;
+            const functionName = document.getElementById('inviteFunction').value;
+            const position = document.getElementById('invitePosition').value.trim();
+            const message = document.getElementById('inviteMessage').value.trim();
+
+            if (!email) {
+                alert('Введіть email співробітника');
+                return;
+            }
+
+            // Перевірити чи користувач вже існує
+            const existingUser = users.find(u => u.email === email);
+            if (existingUser) {
+                alert('❌ Користувач з таким email вже існує в системі');
+                return;
+            }
+
+            // Генерація коду запрошення
+            const inviteCode = 'INV-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            
+            // Збереження запрошення
+            inviteCodes[inviteCode] = {
+                email: email,
+                role: role,
+                function: functionName,
+                position: position,
+                message: message,
+                invitedBy: currentUser.name,
+                createdAt: Date.now(),
+                expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 днів
+                used: false
+            };
+
+            localStorage.setItem('inviteCodes', JSON.stringify(inviteCodes));
+
+            // Створення посилання
+            const currentUrl = window.location.origin + window.location.pathname;
+            const inviteLink = `${currentUrl}?invite=${inviteCode}`;
+            
+            currentInviteCode = inviteCode;
+            document.getElementById('inviteLinkText').textContent = inviteLink;
+
+            closeInviteModal();
+            document.getElementById('inviteLinkModal').style.display = 'block';
+        }
+
+        function copyInviteLink() {
+            const linkText = document.getElementById('inviteLinkText').textContent;
+            navigator.clipboard.writeText(linkText).then(() => {
+                alert('📋 Посилання скопійовано в буфер обміну!');
+            }).catch(() => {
+                // Fallback для старих браузерів
+                const textArea = document.createElement('textarea');
+                textArea.value = linkText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('📋 Посилання скопійовано!');
+            });
+        }
+
+        function shareInviteEmail() {
+            const invite = inviteCodes[currentInviteCode];
+            const linkText = document.getElementById('inviteLinkText').textContent;
+            
+            const subject = encodeURIComponent('Запрошення до TALKO System');
+            const body = encodeURIComponent(`Вітаємо!
+
+Вас запрошують приєднатися до системи управління завданнями TALKO System.
+
+${invite.message ? 'Повідомлення: ' + invite.message + '\n\n' : ''}Роль: ${invite.role === 'manager' ? 'Менеджер' : 'Співробітник'}
+${invite.position ? 'Посада: ' + invite.position + '\n' : ''}${invite.function ? 'Функція: ' + invite.function + '\n' : ''}
+Для реєстрації перейдіть за посиланням:
+${linkText}
+
+Посилання діє 7 днів.
+
+З повагою,
+Команда TALKO System`);
+
+            const mailtoLink = `mailto:${invite.email}?subject=${subject}&body=${body}`;
+            window.open(mailtoLink);
+        }
+
+        function showInviteForm(inviteCode) {
+            const invite = inviteCodes[inviteCode];
+            
+            if (!invite) {
+                alert('❌ Запрошення не знайдено або недійсне');
+                showAuthPage();
+                return;
+            }
+
+            if (invite.used) {
+                alert('❌ Це запрошення вже використано');
+                showAuthPage();
+                return;
+            }
+
+            if (Date.now() > invite.expiresAt) {
+                alert('❌ Термін дії запрошення минув');
+                showAuthPage();
+                return;
+            }
+
+            // Показати форму реєстрації
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('inviteForm').style.display = 'block';
+            
+            currentInviteCode = inviteCode;
+        }
+
+        function completeRegistration() {
+            const name = document.getElementById('inviteName').value.trim();
+            const phone = document.getElementById('invitePhone').value.trim();
+
+            if (!name) {
+                alert('Введіть ім\'я та прізвище');
+                return;
+            }
+
+            const invite = inviteCodes[currentInviteCode];
+            if (!invite) {
+                alert('❌ Помилка запрошення');
+                return;
+            }
+
+            // Створити нового користувача
+            const newUser = {
+                id: Math.max(...users.map(u => u.id || 0), 0) + 1,
+                name: name,
+                email: invite.email,
+                phone: phone,
+                role: invite.role,
+                position: invite.position || '',
+                department: invite.function || '',
+                notes: `Приєднався за запрошенням від ${invite.invitedBy}`
+            };
+
+            users.push(newUser);
+
+            // Додати до функції якщо вказано
+            if (invite.function) {
+                const func = functions.find(f => f.name === invite.function);
+                if (func && !func.assignees.includes(name)) {
+                    func.assignees.push(name);
+                }
+            }
+
+            // Позначити запрошення як використане
+            invite.used = true;
+            invite.usedAt = Date.now();
+
+            // Авторизувати користувача
+            currentUser = newUser;
+            isAuthenticated = true;
+
+            // Зберегти дані
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('functions', JSON.stringify(functions));
+            localStorage.setItem('inviteCodes', JSON.stringify(inviteCodes));
+            localStorage.setItem('authSession', JSON.stringify({
+                email: newUser.email,
+                loginTime: Date.now()
+            }));
+
+            showMainInterface();
+            updateCurrentUserInfo();
+            renderTasks();
+            alert(`🎉 Вітаємо в команді, ${newUser.name}!`);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            checkAuthentication(); // Перевіряє чи користувач залогінений
+            updateSelects();
+            renderTasks();
+            ['taskForm','functionForm','regularTaskForm','userForm','inviteFormModal'].forEach(id => {
+                document.getElementById(id).addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if(id==='taskForm') saveTask();
+                    else if(id==='functionForm') saveFunction();
+                    else if(id==='regularTaskForm') saveRegularTask();
+                    else if(id==='userForm') saveUser();
+                    else if(id==='inviteFormModal') createInvite();
+                });
+            });
+        });
+
+        function loadData() {
+            tasks = JSON.parse(localStorage.getItem('tasks')) || [
+                {id:1, title:"Аналіз конкурентів", assignee:"Марія Петренко", creator:"Олександр Талько", createdDate:"2024-11-11T10:00", deadline:"2024-11-15T18:00", status:"progress", type:"single", function:"Маркетинг", additionalInfo:"Топ-5 конкурентів у сфері консалтингу", howToReport:"Створити презентацію та відправити на email", result:"", priority:"high", pinned:true},
+                {id:2, title:"Оновити сайт", assignee:"Іван Коваленко", creator:"Олександр Талько", createdDate:"2024-11-10T14:30", deadline:"2024-11-20T12:00", status:"new", type:"regular", function:"IT", additionalInfo:"Оновити тексти на головній сторінці", howToReport:"Повідомити в Telegram після завершення", result:"", priority:"medium", pinned:false}
+            ];
+            functions = JSON.parse(localStorage.getItem('functions')) || [
+                {id:1, name:"Маркетинг", description:"Реклама і промоція", color:"#e74c3c", assignees:["Марія Петренко"]},
+                {id:2, name:"Продажі", description:"Робота з клієнтами", color:"#27ae60", assignees:["Іван Коваленко"]},
+                {id:3, name:"IT", description:"Техпідтримка", color:"#3498db", assignees:["Ольга Сидоренко"]}
+            ];
+            regularTasks = JSON.parse(localStorage.getItem('regularTasks')) || [];
+            users = JSON.parse(localStorage.getItem('users')) || [
+                {id: 1, name: "Олександр Талько", role: "owner", email: "management.talco@gmail.com", phone: "+380501234567", position: "CEO", department: "Управління", notes: "Засновник TALKO System"},
+                {id: 2, name: "Марія Петренко", role: "manager", email: "maria@talko.com", phone: "+380501234568", position: "Менеджер з маркетингу", department: "Маркетинг", notes: "5 років досвіду в digital-маркетингу"},
+                {id: 3, name: "Іван Коваленко", role: "employee", email: "ivan@talko.com", phone: "+380501234569", position: "Розробник", department: "IT", notes: "Frontend/Backend розробка"},
+                {id: 4, name: "Ольга Сидоренко", role: "employee", email: "olga@talko.com", phone: "+380501234570", position: "Дизайнер", department: "Дизайн", notes: "UI/UX дизайн, брендинг"}
+            ];
+            inviteCodes = JSON.parse(localStorage.getItem('inviteCodes')) || {};
+        }
+
+        function saveData() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('functions', JSON.stringify(functions));
+            localStorage.setItem('regularTasks', JSON.stringify(regularTasks));
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        function switchTab(tabName) {
+            activeTab = tabName;
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            
+            switch(tabName) {
+                case 'tasks': renderTasks(); break;
+                case 'control': renderControlDashboard(); break;
+                case 'regular': renderRegularTasks(); break;
+                case 'functions': renderFunctions(); break;
+                case 'users': renderUsers(); break;
+                case 'analytics': renderAnalytics(); break;
+            }
+        }
+
+        function openTaskModal(taskId = null) {
+            if (taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                if (task && !canEditTask(task)) {
+                    showPermissionError();
+                    return;
+                }
+            } else {
+                if (!hasPermission('createTasks')) {
+                    showPermissionError();
+                    return;
+                }
+            }
+            
+            document.getElementById('taskModal').style.display = 'block';
+            if (taskId) {
+                editingTaskId = taskId;
+                fillTaskForm(taskId);
+                document.getElementById('modalTitle').textContent = 'Редагувати завдання';
+            } else {
+                editingTaskId = null;
+                clearTaskForm();
+                document.getElementById('modalTitle').textContent = 'Додати завдання';
+            }
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').style.display = 'none';
+            editingTaskId = null;
+        }
+
+        function clearTaskForm() {
+            ['taskTitle','taskFunction','taskAssignee','taskDeadline','taskInfo','taskReporting','taskResult'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('taskType').value = 'single';
+            document.getElementById('taskStatus').value = 'new';
+            document.getElementById('taskPriority').value = 'medium';
+            document.getElementById('taskPinned').checked = false;
+        }
+
+        function fillTaskForm(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                document.getElementById('taskTitle').value = task.title;
+                document.getElementById('taskFunction').value = task.function || '';
+                document.getElementById('taskAssignee').value = task.assignee;
+                document.getElementById('taskDeadline').value = task.deadline;
+                document.getElementById('taskType').value = task.type;
+                document.getElementById('taskStatus').value = task.status;
+                document.getElementById('taskPriority').value = task.priority || 'medium';
+                document.getElementById('taskPinned').checked = task.pinned || false;
+                document.getElementById('taskInfo').value = task.additionalInfo || '';
+                document.getElementById('taskReporting').value = task.howToReport || '';
+                document.getElementById('taskResult').value = task.result || '';
+            }
+        }
+
+        function saveTask() {
+            const data = {
+                title: document.getElementById('taskTitle').value,
+                function: document.getElementById('taskFunction').value,
+                assignee: document.getElementById('taskAssignee').value,
+                deadline: document.getElementById('taskDeadline').value,
+                type: document.getElementById('taskType').value,
+                status: document.getElementById('taskStatus').value,
+                priority: document.getElementById('taskPriority').value,
+                pinned: document.getElementById('taskPinned').checked,
+                additionalInfo: document.getElementById('taskInfo').value,
+                howToReport: document.getElementById('taskReporting').value,
+                result: document.getElementById('taskResult').value,
+                creator: currentUser.name
+            };
+
+            if (!data.title || !data.assignee || !data.deadline) {
+                alert('Заповніть обов\'язкові поля');
+                return;
+            }
+
+            if (editingTaskId) {
+                const idx = tasks.findIndex(t => t.id === editingTaskId);
+                if (idx !== -1) tasks[idx] = {...tasks[idx], ...data};
+                alert('Завдання оновлено');
+            } else {
+                tasks.push({id: Date.now(), createdDate: new Date().toISOString(), ...data});
+                alert('Завдання створено');
+            }
+
+            saveData();
+            renderTasks();
+            closeTaskModal();
+        }
+
+        function deleteTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task && !canDeleteTask(task)) {
+                showPermissionError();
+                return;
+            }
+            
+            if (confirm('Видалити завдання?')) {
+                tasks = tasks.filter(t => t.id !== taskId);
+                saveData();
+                renderTasks();
+                alert('Завдання видалено');
+            }
+        }
+
+        function togglePinTask(taskId) {
+            const idx = tasks.findIndex(t => t.id === taskId);
+            if (idx !== -1) {
+                tasks[idx].pinned = !tasks[idx].pinned;
+                saveData();
+                renderTasks();
+                alert(tasks[idx].pinned ? 'Закріплено' : 'Відкріплено');
+            }
+        }
+
+        function getFilteredTasks() {
+            const filters = {
+                pinned: document.getElementById('pinnedFilter')?.value,
+                date: document.getElementById('dateFilter')?.value,
+                status: document.getElementById('statusFilter')?.value,
+                function: document.getElementById('functionFilter')?.value,
+                assignee: document.getElementById('assigneeFilter')?.value
+            };
+
+            return tasks.filter(task => {
+                // 🔒 ПЕРЕВІРКА ПРАВ ДОСТУПУ
+                if (!canViewTask(task)) return false;
+
+                const matchesPinned = !filters.pinned || 
+                    (filters.pinned === 'pinned' && task.pinned) ||
+                    (filters.pinned === 'unpinned' && !task.pinned);
+
+                let matchesDate = true;
+                if (filters.date) {
+                    const taskDate = new Date(task.deadline);
+                    const now = new Date();
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    
+                    switch(filters.date) {
+                        case 'today':
+                            const tomorrow = new Date(today);
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            matchesDate = taskDate >= today && taskDate < tomorrow;
+                            break;
+                        case 'week':
+                            const weekEnd = new Date(today);
+                            weekEnd.setDate(weekEnd.getDate() + 7);
+                            matchesDate = taskDate >= today && taskDate < weekEnd;
+                            break;
+                        case 'month':
+                            const monthEnd = new Date(today);
+                            monthEnd.setMonth(monthEnd.getMonth() + 1);
+                            matchesDate = taskDate >= today && taskDate < monthEnd;
+                            break;
+                        case 'overdue':
+                            matchesDate = taskDate < now && task.status !== 'done';
+                            break;
+                        case 'custom':
+                            const dateFrom = document.getElementById('dateFrom')?.value;
+                            const dateTo = document.getElementById('dateTo')?.value;
+                            if (dateFrom && dateTo) {
+                                const fromDate = new Date(dateFrom);
+                                const toDate = new Date(dateTo + 'T23:59:59');
+                                matchesDate = taskDate >= fromDate && taskDate <= toDate;
+                            }
+                            break;
+                    }
+                }
+
+                return matchesPinned && matchesDate && 
+                       (!filters.status || task.status === filters.status) &&
+                       (!filters.function || task.function === filters.function) &&
+                       (!filters.assignee || task.assignee === filters.assignee);
+            });
+        }
+
+        function applyFilters() {
+            const dateFilter = document.getElementById('dateFilter')?.value;
+            const dateRangeInputs = document.getElementById('dateRangeInputs');
+            if (dateRangeInputs) {
+                dateRangeInputs.style.display = dateFilter === 'custom' ? 'flex' : 'none';
+            }
+            renderTasks();
+        }
+
+        function clearFilters() {
+            ['pinnedFilter','dateFilter','statusFilter','functionFilter','assigneeFilter','dateFrom','dateTo'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.value = '';
+            });
+            document.getElementById('dateRangeInputs').style.display = 'none';
+            renderTasks();
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            const filtered = getFilteredTasks();
+            const sorted = [...filtered].sort((a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return new Date(a.deadline) - new Date(b.deadline);
+            });
+
+            if (sorted.length === 0) {
+                container.innerHTML = `
+                    <div class="task-header">
+                        <div>Завдання</div><div>Виконавець</div><div>Створив</div>
+                        <div>Дедлайн</div><div>Статус</div><div>Тип</div><div>Дії</div>
+                    </div>
+                    <div class="empty-state">
+                        <h3>Завдань не знайдено</h3>
+                        <p>Змініть фільтри або додайте нове завдання</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="task-header">
+                    <div>Завдання</div><div>Виконавець</div><div>Створив</div>
+                    <div>Дедлайн</div><div>Статус</div><div>Тип</div><div>Дії</div>
+                </div>
+                ${sorted.map(task => `
+                    <div class="task-row ${task.pinned ? 'pinned' : ''}">
+                        <div>
+                            <div class="task-title-container">
+                                <button class="pin-btn ${task.pinned ? 'pinned' : ''}" onclick="togglePinTask(${task.id})" title="${task.pinned ? 'Відкріпити' : 'Закріпити'}">📌</button>
+                                <div class="task-title">${task.title}</div>
+                            </div>
+                            ${task.additionalInfo ? `<div class="task-info">${task.additionalInfo}</div>` : ''}
+                        </div>
+                        <div>${task.assignee}</div>
+                        <div>${task.creator}</div>
+                        <div>${formatDateTime(task.deadline)}</div>
+                        <div><span class="status-badge status-${task.status}">${getStatusText(task.status)}</span></div>
+                        <div><span class="type-badge type-${task.type}">${getTypeText(task.type)}</span></div>
+                        <div>
+                            ${canEditTask(task) ? `<button class="btn btn-small" onclick="openTaskModal(${task.id})">✏️</button>` : ''}
+                            ${canDeleteTask(task) ? `<button class="btn btn-small btn-danger" onclick="deleteTask(${task.id})" style="margin-left: 0.3rem;">🗑️</button>` : ''}
+                            ${!canEditTask(task) && !canDeleteTask(task) ? '<span style="color: #7f8c8d; font-size: 0.8rem;">Тільки перегляд</span>' : ''}
+                        </div>
+                    </div>
+                `).join('')}`;
+        }
+
+        function openFunctionModal() {
+            document.getElementById('functionModal').style.display = 'block';
+            updateFunctionAssigneesList();
+            clearFunctionForm();
+        }
+
+        function closeFunctionModal() {
+            document.getElementById('functionModal').style.display = 'none';
+        }
+
+        function clearFunctionForm() {
+            document.getElementById('functionName').value = '';
+            document.getElementById('functionColor').value = '#3498db';
+            document.getElementById('functionDescription').value = '';
+            document.querySelectorAll('#functionAssignees input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+
+        function updateFunctionAssigneesList() {
+            document.getElementById('functionAssignees').innerHTML = users.map(user => `
+                <label style="display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0;">
+                    <input type="checkbox" value="${user.name}">
+                    <span>${user.name}</span>
+                </label>
+            `).join('');
+        }
+
+        function saveFunction() {
+            const data = {
+                name: document.getElementById('functionName').value.trim(),
+                color: document.getElementById('functionColor').value,
+                description: document.getElementById('functionDescription').value.trim(),
+                assignees: Array.from(document.querySelectorAll('#functionAssignees input[type="checkbox"]:checked')).map(cb => cb.value)
+            };
+
+            if (!data.name) {
+                alert('Введіть назву функції');
+                return;
+            }
+
+            functions.push({id: Date.now(), ...data});
+            saveData();
+            updateSelects();
+            renderFunctions();
+            closeFunctionModal();
+            alert('Функцію створено');
+        }
+
+        function deleteFunction(functionId) {
+            if (confirm('Видалити функцію?')) {
+                functions = functions.filter(f => f.id !== functionId);
+                saveData();
+                updateSelects();
+                renderFunctions();
+                alert('Функцію видалено');
+            }
+        }
+
+        function renderFunctions() {
+            const container = document.getElementById('functionsContainer');
+            if (functions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Функції організації</h3>
+                        <p>Додайте функції для структурування роботи</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="function-cards">
+                    ${functions.map(func => `
+                        <div class="function-card">
+                            <div class="function-title" style="color: ${func.color};">${func.name}</div>
+                            <div class="function-description">${func.description}</div>
+                            <div class="function-assignees">
+                                ${func.assignees.map(a => `<span class="assignee-badge">${a}</span>`).join('')}
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                                <span class="function-tasks-count">Завдань: ${tasks.filter(t => t.function === func.name).length}</span>
+                                <button class="btn btn-small btn-danger" onclick="deleteFunction(${func.id})">🗑️</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`;
+        }
+
+        function openRegularTaskModal() {
+            if (!hasPermission('createRegular')) {
+                showPermissionError();
+                return;
+            }
+            document.getElementById('regularTaskModal').style.display = 'block';
+            clearRegularTaskForm();
+            updateRegularTaskSelects();
+        }
+
+        function closeRegularTaskModal() {
+            document.getElementById('regularTaskModal').style.display = 'none';
+        }
+
+        function clearRegularTaskForm() {
+            document.getElementById('regularTaskTitle').value = '';
+            document.getElementById('regularTaskFunction').value = '';
+            document.getElementById('regularTaskAssignee').value = '';
+            document.getElementById('regularTaskPeriod').value = 'weekly';
+            document.getElementById('regularTaskDuration').value = '1';
+            document.getElementById('regularTaskDescription').value = '';
+            document.getElementById('customDaysContainer').style.display = 'none';
+            document.querySelectorAll('input[name="customDays"]').forEach(cb => cb.checked = false);
+        }
+
+        function updatePeriodOptions() {
+            const period = document.getElementById('regularTaskPeriod').value;
+            const customDaysContainer = document.getElementById('customDaysContainer');
+            
+            if (period === 'custom') {
+                customDaysContainer.style.display = 'block';
+            } else {
+                customDaysContainer.style.display = 'none';
+                // Очистити вибрані дні
+                document.querySelectorAll('input[name="customDays"]').forEach(cb => cb.checked = false);
+            }
+        }
+
+        function updateRegularTaskSelects() {
+            document.getElementById('regularTaskFunction').innerHTML = '<option value="">Без функції</option>' + 
+                functions.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+            document.getElementById('regularTaskAssignee').innerHTML = '<option value="">Виконавець</option>' + 
+                users.map(u => `<option value="${u.name}">${u.name}</option>`).join('');
+        }
+
+        function saveRegularTask() {
+            const period = document.getElementById('regularTaskPeriod').value;
+            let customDays = [];
+            
+            if (period === 'custom') {
+                customDays = Array.from(document.querySelectorAll('input[name="customDays"]:checked')).map(cb => parseInt(cb.value));
+                if (customDays.length === 0) {
+                    alert('Оберіть хоча б один день для виконання');
+                    return;
+                }
+            }
+            
+            const data = {
+                title: document.getElementById('regularTaskTitle').value.trim(),
+                function: document.getElementById('regularTaskFunction').value,
+                assignee: document.getElementById('regularTaskAssignee').value,
+                period: period,
+                customDays: customDays,
+                duration: parseInt(document.getElementById('regularTaskDuration').value),
+                description: document.getElementById('regularTaskDescription').value.trim()
+            };
+
+            if (!data.title || !data.assignee) {
+                alert('Заповніть назву та виконавця');
+                return;
+            }
+
+            regularTasks.push({
+                id: Date.now(),
+                createdDate: new Date().toISOString(),
+                lastGenerated: null,
+                active: true,
+                ...data
+            });
+            
+            saveData();
+            renderRegularTasks();
+            closeRegularTaskModal();
+            alert('Регулярне завдання створено');
+        }
+
+        function generateTaskFromRegular(regularTaskId) {
+            const rt = regularTasks.find(r => r.id === regularTaskId);
+            if (!rt) return;
+
+            const now = new Date();
+            const deadline = new Date(now);
+            deadline.setDate(deadline.getDate() + rt.duration);
+
+            tasks.push({
+                id: Date.now(),
+                title: rt.title,
+                function: rt.function,
+                assignee: rt.assignee,
+                creator: currentUser.name,
+                createdDate: now.toISOString(),
+                deadline: deadline.toISOString(),
+                status: 'new',
+                type: 'regular',
+                priority: 'medium',
+                pinned: false,
+                additionalInfo: rt.description,
+                howToReport: '',
+                result: ''
+            });
+
+            const idx = regularTasks.findIndex(r => r.id === regularTaskId);
+            if (idx !== -1) regularTasks[idx].lastGenerated = now.toISOString();
+
+            saveData();
+            renderRegularTasks();
+            alert(`Створено: ${rt.title}`);
+        }
+
+        function deleteRegularTask(regularTaskId) {
+            if (confirm('Видалити регулярне завдання?')) {
+                regularTasks = regularTasks.filter(rt => rt.id !== regularTaskId);
+                saveData();
+                renderRegularTasks();
+                alert('Регулярне завдання видалено');
+            }
+        }
+
+        function renderRegularTasks() {
+            const container = document.getElementById('regularTasksContainer');
+            if (regularTasks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Регулярні завдання</h3>
+                        <p>Додайте регулярні завдання для автоматизації</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="regular-tasks-grid">
+                    ${regularTasks.map(rt => {
+                        let periodText = '';
+                        const dayNames = ['Неділя', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця', 'Субота'];
+                        
+                        switch(rt.period) {
+                            case 'daily': periodText = 'щодня'; break;
+                            case 'weekly': periodText = 'щотижня'; break;
+                            case 'monthly': periodText = 'щомісяця'; break;
+                            case 'workdays': periodText = 'робочі дні (Пн-Пт)'; break;
+                            case 'weekends': periodText = 'вихідні (Сб-Нд)'; break;
+                            case 'custom': 
+                                if (rt.customDays && rt.customDays.length > 0) {
+                                    const selectedDays = rt.customDays.map(d => dayNames[d]).join(', ');
+                                    periodText = `вибрані дні: ${selectedDays}`;
+                                } else {
+                                    periodText = 'вибрані дні';
+                                }
+                                break;
+                            default: periodText = rt.period;
+                        }
+
+                        const lastGenerated = rt.lastGenerated ? new Date(rt.lastGenerated).toLocaleDateString('uk-UA') : 'Ніколи';
+
+                        return `
+                            <div class="regular-task-card">
+                                <div class="regular-task-header">
+                                    <div class="regular-task-title">${rt.title}</div>
+                                </div>
+                                <div class="regular-task-info">
+                                    <div><strong>Виконавець:</strong> ${rt.assignee}</div>
+                                    <div><strong>Функція:</strong> ${rt.function || 'Без функції'}</div>
+                                    <div><strong>Періодичність:</strong> ${periodText}</div>
+                                    <div><strong>Днів на виконання:</strong> ${rt.duration}</div>
+                                    <div><strong>Останнє створення:</strong> ${lastGenerated}</div>
+                                    ${rt.description ? `<div><strong>Опис:</strong> ${rt.description}</div>` : ''}
+                                </div>
+                                <div class="regular-task-actions">
+                                    <button class="btn btn-small btn-success" onclick="generateTaskFromRegular(${rt.id})">⚡ Створити</button>
+                                    <button class="btn btn-small btn-danger" onclick="deleteRegularTask(${rt.id})">🗑️</button>
+                                </div>
+                            </div>`;
+                    }).join('')}
+                </div>`;
+        }
+
+        function renderControlDashboard() {
+            updateControlOverview();
+            updateControlView();
+        }
+
+        function updateControlOverview() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const urgent = tasks.filter(t => new Date(t.deadline) < now && t.status !== 'done').length;
+            const warning = tasks.filter(t => {
+                const deadline = new Date(t.deadline);
+                return deadline >= today && deadline < tomorrow && t.status !== 'done';
+            }).length;
+            const active = tasks.filter(t => t.status === 'progress').length;
+            const completed = tasks.filter(t => t.status === 'done').length;
+
+            document.getElementById('urgentCount').textContent = urgent;
+            document.getElementById('warningCount').textContent = warning;
+            document.getElementById('activeCount').textContent = active;
+            document.getElementById('completedCount').textContent = completed;
+        }
+
+        function updateControlView() {
+            const view = document.getElementById('controlView')?.value || 'workload';
+            const container = document.getElementById('controlContent');
+
+            if (view === 'workload') {
+                const assignees = [...new Set(tasks.map(t => t.assignee))].filter(Boolean);
+                container.innerHTML = `<h3>Навантаження співробітників</h3>` +
+                    assignees.map(assignee => {
+                        const assigneeTasks = tasks.filter(t => t.assignee === assignee);
+                        const active = assigneeTasks.filter(t => t.status !== 'done');
+                        const overdue = assigneeTasks.filter(t => new Date(t.deadline) < new Date() && t.status !== 'done');
+
+                        return `
+                            <div style="background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <strong>${assignee}</strong>
+                                    <div>
+                                        Всього: ${assigneeTasks.length} | 
+                                        Активних: ${active.length}
+                                        ${overdue.length > 0 ? ` | <span style="color: #e74c3c;">Прострочено: ${overdue.length}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>`;
+                    }).join('');
+            }
+        }
+
+        function renderAnalytics() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.status === 'done').length;
+            const overdue = tasks.filter(t => new Date(t.deadline) < new Date() && t.status !== 'done').length;
+            const efficiency = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            document.getElementById('totalTasksCount').textContent = total;
+            document.getElementById('completedTasksCount').textContent = completed;
+            document.getElementById('overdueTasksCount').textContent = overdue;
+            document.getElementById('efficiencyPercent').textContent = efficiency + '%';
+
+            renderStatusChart();
+            renderWorkloadChart();
+        }
+
+        function renderStatusChart() {
+            const counts = {
+                new: tasks.filter(t => t.status === 'new').length,
+                progress: tasks.filter(t => t.status === 'progress').length,
+                review: tasks.filter(t => t.status === 'review').length,
+                done: tasks.filter(t => t.status === 'done').length
+            };
+            const total = Object.values(counts).reduce((a, b) => a + b, 0);
+            
+            document.getElementById('statusChart').innerHTML = Object.entries(counts).map(([status, count]) => {
+                const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+                const colors = {new: '#3498db', progress: '#f39c12', review: '#e91e63', done: '#27ae60'};
+                
+                return `
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 12px; height: 12px; background: ${colors[status]}; border-radius: 2px;"></div>
+                            <span style="font-size: 0.85rem;">${getStatusText(status)}</span>
+                        </div>
+                        <div style="flex: 1; margin: 0 1rem;">
+                            <div style="background: #ecf0f1; height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="width: ${percentage}%; height: 100%; background: ${colors[status]}; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                        <span style="font-weight: 600; font-size: 0.8rem; min-width: 40px;">${count} (${percentage}%)</span>
+                    </div>`;
+            }).join('');
+        }
+
+        function renderWorkloadChart() {
+            const assignees = [...new Set(tasks.map(t => t.assignee))].filter(Boolean);
+            const maxTasks = Math.max(...assignees.map(a => tasks.filter(t => t.assignee === a).length), 1);
+            
+            document.getElementById('workloadChart').innerHTML = assignees.map(assignee => {
+                const assigneeTasks = tasks.filter(t => t.assignee === assignee);
+                const active = assigneeTasks.filter(t => t.status !== 'done');
+                const percentage = Math.round((assigneeTasks.length / maxTasks) * 100);
+                
+                return `
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                            <span style="font-weight: 600; font-size: 0.85rem;">${assignee}</span>
+                            <span style="font-size: 0.8rem;">${assigneeTasks.length} (${active.length} активних)</span>
+                        </div>
+                        <div style="background: #ecf0f1; height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="width: ${percentage}%; height: 100%; background: #3498db; transition: width 0.3s;"></div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        // Управління користувачами
+        function openUserModal(userId = null) {
+            if (!hasPermission('manageUsers')) {
+                showPermissionError();
+                return;
+            }
+            document.getElementById('userModal').style.display = 'block';
+            if (userId) {
+                editingUserId = userId;
+                fillUserForm(userId);
+                document.getElementById('userModalTitle').textContent = 'Редагувати співробітника';
+            } else {
+                editingUserId = null;
+                clearUserForm();
+                document.getElementById('userModalTitle').textContent = 'Додати співробітника';
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').style.display = 'none';
+            editingUserId = null;
+        }
+
+        function clearUserForm() {
+            ['userName', 'userEmail', 'userPhone', 'userPosition', 'userDepartment', 'userNotes'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('userRole').value = 'employee';
+        }
+
+        function fillUserForm(userId) {
+            const user = users.find(u => u.id === userId);
+            if (user) {
+                document.getElementById('userName').value = user.name;
+                document.getElementById('userEmail').value = user.email || '';
+                document.getElementById('userPhone').value = user.phone || '';
+                document.getElementById('userRole').value = user.role;
+                document.getElementById('userPosition').value = user.position || '';
+                document.getElementById('userDepartment').value = user.department || '';
+                document.getElementById('userNotes').value = user.notes || '';
+            }
+        }
+
+        function saveUser() {
+            const data = {
+                name: document.getElementById('userName').value.trim(),
+                email: document.getElementById('userEmail').value.trim(),
+                phone: document.getElementById('userPhone').value.trim(),
+                role: document.getElementById('userRole').value,
+                position: document.getElementById('userPosition').value.trim(),
+                department: document.getElementById('userDepartment').value.trim(),
+                notes: document.getElementById('userNotes').value.trim()
+            };
+
+            if (!data.name || !data.email) {
+                alert('Заповніть ім\'я та email');
+                return;
+            }
+
+            // Перевірка унікальності email
+            const existingUser = users.find(u => u.email === data.email && (!editingUserId || u.id !== editingUserId));
+            if (existingUser) {
+                alert('Користувач з таким email вже існує');
+                return;
+            }
+
+            if (editingUserId) {
+                const idx = users.findIndex(u => u.id === editingUserId);
+                if (idx !== -1) {
+                    const oldName = users[idx].name;
+                    users[idx] = {...users[idx], ...data};
+                    
+                    // Оновити завдання якщо змінилося ім'я
+                    if (oldName !== data.name) {
+                        tasks.forEach(task => {
+                            if (task.assignee === oldName) task.assignee = data.name;
+                            if (task.creator === oldName) task.creator = data.name;
+                        });
+                        
+                        functions.forEach(func => {
+                            func.assignees = func.assignees.map(a => a === oldName ? data.name : a);
+                        });
+                        
+                        regularTasks.forEach(rt => {
+                            if (rt.assignee === oldName) rt.assignee = data.name;
+                        });
+                    }
+                }
+                alert('Співробітника оновлено');
+            } else {
+                const newUser = {
+                    id: Math.max(...users.map(u => u.id || 0), 0) + 1,
+                    ...data
+                };
+                users.push(newUser);
+                alert('Співробітника створено');
+            }
+
+            saveData();
+            updateSelects();
+            renderUsers();
+            closeUserModal();
+        }
+
+        function deleteUser(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            // Перевірка чи є завдання призначені цьому користувачу
+            const userTasks = tasks.filter(t => t.assignee === user.name || t.creator === user.name);
+            if (userTasks.length > 0) {
+                if (!confirm(`У користувача ${user.name} є ${userTasks.length} завдань. Видалити все одно?`)) {
+                    return;
+                }
+            }
+
+            if (confirm(`Видалити співробітника ${user.name}?`)) {
+                users = users.filter(u => u.id !== userId);
+                
+                // Видалити користувача з функцій
+                functions.forEach(func => {
+                    func.assignees = func.assignees.filter(a => a !== user.name);
+                });
+
+                saveData();
+                updateSelects();
+                renderUsers();
+                renderTasks();
+                alert('Співробітника видалено');
+            }
+        }
+
+        function renderUsers() {
+            const container = document.getElementById('usersContainer');
+            
+            if (users.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Співробітники</h3>
+                        <p>Додайте співробітників для управління командою</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="function-cards">
+                    ${users.map(user => {
+                        const roleText = {owner: 'Власник', manager: 'Менеджер', employee: 'Співробітник'}[user.role];
+                        const roleColor = {owner: '#e74c3c', manager: '#f39c12', employee: '#3498db'}[user.role];
+                        const userTasks = tasks.filter(t => t.assignee === user.name);
+                        const activeTasks = userTasks.filter(t => t.status !== 'done');
+                        
+                        return `
+                            <div class="function-card">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                    <div class="function-title">${user.name}</div>
+                                    <span style="background: ${roleColor}; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.7rem; font-weight: 600;">${roleText}</span>
+                                </div>
+                                
+                                <div style="margin-bottom: 1rem; font-size: 0.85rem; line-height: 1.4;">
+                                    ${user.position ? `<div><strong>Посада:</strong> ${user.position}</div>` : ''}
+                                    ${user.department ? `<div><strong>Департамент:</strong> ${user.department}</div>` : ''}
+                                    <div><strong>Email:</strong> ${user.email}</div>
+                                    ${user.phone ? `<div><strong>Телефон:</strong> ${user.phone}</div>` : ''}
+                                    ${user.notes ? `<div style="margin-top: 0.5rem;"><strong>Примітки:</strong> ${user.notes}</div>` : ''}
+                                </div>
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <div style="font-size: 0.85rem;">
+                                        <div>Завдань: <strong>${userTasks.length}</strong></div>
+                                        <div>Активних: <strong style="color: ${activeTasks.length > 0 ? '#f39c12' : '#27ae60'};">${activeTasks.length}</strong></div>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                    <button class="btn btn-small" onclick="openUserModal(${user.id})">✏️ Редагувати</button>
+                                    ${user.role !== 'owner' ? `<button class="btn btn-small btn-danger" onclick="deleteUser(${user.id})">🗑️ Видалити</button>` : ''}
+                                </div>
+                            </div>`;
+                    }).join('')}
+                </div>`;
+        }
+
+        function updateSelects() {
+            const taskFunc = document.getElementById('taskFunction');
+            const funcFilter = document.getElementById('functionFilter');
+            const taskAssignee = document.getElementById('taskAssignee');
+            const assigneeFilter = document.getElementById('assigneeFilter');
+
+            [taskFunc, funcFilter].forEach(el => {
+                if (el) {
+                    const current = el.value;
+                    el.innerHTML = (el.id.includes('taskFunction') ? '<option value="">Без функції</option>' : '<option value="">Функції</option>') +
+                        functions.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+                    el.value = current;
+                }
+            });
+
+            [taskAssignee, assigneeFilter].forEach(el => {
+                if (el) {
+                    const current = el.value;
+                    el.innerHTML = (el.id.includes('taskAssignee') ? '<option value="">Оберіть виконавця</option>' : '<option value="">Виконавці</option>') +
+                        users.map(u => `<option value="${u.name}">${u.name}</option>`).join('');
+                    el.value = current;
+                }
+            });
+        }
+
+        function formatDateTime(dateTimeString) {
+            const date = new Date(dateTimeString);
+            const now = new Date();
+            const isOverdue = date < now;
+            const formatted = date.toLocaleString('uk-UA', {
+                year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+            });
+            return isOverdue ? `<span style="color: #e74c3c; font-weight: 600;">${formatted}</span>` : formatted;
+        }
+
+        function getStatusText(status) {
+            return {new: 'Нове', progress: 'В роботі', review: 'Перевірка', done: 'Готово'}[status] || status;
+        }
+
+        function getTypeText(type) {
+            return {single: 'Разове', regular: 'Регулярне', bottleneck: 'Вузьке місце'}[type] || type;
+        }
+
+        function exportToCSV() {
+            const data = tasks.map(task => ({
+                'Завдання': task.title,
+                'Відповідальний': task.assignee,
+                'Створив': task.creator,
+                'Дедлайн': formatDateTime(task.deadline).replace(/<[^>]*>/g, ''),
+                'Статус': getStatusText(task.status),
+                'Тип': getTypeText(task.type),
+                'Пріоритет': task.priority || 'medium',
+                'Функція': task.function || '',
+                'Додаткова інформація': task.additionalInfo || '',
+                'Як звітуватися': task.howToReport || '',
+                'Результат': task.result || ''
+            }));
+
+            const csv = [
+                Object.keys(data[0]).join(','),
+                ...data.map(row => Object.values(row).map(val => `"${val}"`).join(','))
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `tasks_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function setLanguage(lang) {
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        window.onclick = function(event) {
+            ['taskModal', 'functionModal', 'regularTaskModal', 'userModal', 'inviteModal', 'inviteLinkModal'].forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    if (modalId === 'taskModal') editingTaskId = null;
+                    if (modalId === 'userModal') editingUserId = null;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
